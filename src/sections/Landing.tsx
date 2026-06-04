@@ -25,7 +25,7 @@ export default function Landing() {
       .from(taglineRef.current, { opacity: 0, y: 20, duration: 0.6, ease: 'power2.out' }, '-=0.2')
       .from(ctaRef.current, { opacity: 0, y: 20, duration: 0.6, ease: 'power2.out' }, '-=0.3')
 
-    gsap.to(indicatorRef.current, {
+    const bounce = gsap.to(indicatorRef.current, {
       y: 10,
       duration: 0.8,
       repeat: -1,
@@ -33,7 +33,10 @@ export default function Landing() {
       ease: 'power1.inOut',
     })
 
-    return () => { tl.kill() }
+    return () => {
+      tl.kill()
+      bounce?.kill()
+    }
   }, [])
 
   const scrollToAbout = () => {
@@ -66,6 +69,7 @@ export default function Landing() {
           Where Strategy Meets Excellence.
         </p>
         <button
+          type="button"
           ref={ctaRef}
           onClick={scrollToAbout}
           className="font-body text-[0.8125rem] uppercase tracking-[0.15em] text-cream bg-transparent border border-gold px-11 py-4 cursor-pointer transition-colors duration-300 hover:bg-gold hover:text-black"
