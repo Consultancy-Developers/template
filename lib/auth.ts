@@ -1,4 +1,4 @@
-import { createHash } from 'crypto'
+import { createHash, timingSafeEqual } from 'crypto'
 import type { NextRequest } from 'next/server'
 
 export const COOKIE_NAME = 'admin_session'
@@ -13,7 +13,9 @@ export function createSessionToken(): string {
 }
 
 export function verifySession(token: string): boolean {
-  return token === createSessionToken()
+  const expected = createSessionToken()
+  if (token.length !== expected.length) return false
+  return timingSafeEqual(Buffer.from(token), Buffer.from(expected))
 }
 
 export function isRequestAuthenticated(req: NextRequest): boolean {
