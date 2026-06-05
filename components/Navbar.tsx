@@ -17,19 +17,21 @@ export default function Navbar() {
           Template
         </Link>
         <div className="flex items-center gap-6">
-          {navLinks.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`text-sm font-medium transition-colors ${
-                pathname === href
-                  ? 'text-gray-900'
-                  : 'text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
+          {navLinks.map(({ href, label }) => {
+            const isActive = href === '/' ? pathname === href : pathname.startsWith(href)
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={isActive ? 'page' : undefined}
+                className={`text-sm font-medium transition-colors ${
+                  isActive ? 'text-gray-900' : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                {label}
+              </Link>
+            )
+          })}
           <Link
             href="/contact"
             className="bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"

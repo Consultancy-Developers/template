@@ -12,17 +12,19 @@ interface FormState {
 const empty: FormState = { name: '', email: '', phone: '', subject: '', message: '' }
 
 function Field({
+  id,
   label,
   required,
   children,
 }: {
+  id: string
   label: string
   required?: boolean
   children: React.ReactNode
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1">
         {label}{required && <span className="text-red-500 ml-0.5">*</span>}
       </label>
       {children}
@@ -83,17 +85,17 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Field label="Name" required>
+        <Field id="name" label="Name" required>
           <input
-            name="name" type="text" required
+            id="name" name="name" type="text" required
             value={form.name} onChange={set}
             placeholder="John Doe"
             className={inputClass}
           />
         </Field>
-        <Field label="Email" required>
+        <Field id="email" label="Email" required>
           <input
-            name="email" type="email" required
+            id="email" name="email" type="email" required
             value={form.email} onChange={set}
             placeholder="john@example.com"
             className={inputClass}
@@ -101,26 +103,26 @@ export default function ContactForm() {
         </Field>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Field label="Phone">
+        <Field id="phone" label="Phone">
           <input
-            name="phone" type="tel"
+            id="phone" name="phone" type="tel"
             value={form.phone} onChange={set}
             placeholder="+1 555 0101"
             className={inputClass}
           />
         </Field>
-        <Field label="Subject" required>
+        <Field id="subject" label="Subject" required>
           <input
-            name="subject" type="text" required
+            id="subject" name="subject" type="text" required
             value={form.subject} onChange={set}
             placeholder="General Inquiry"
             className={inputClass}
           />
         </Field>
       </div>
-      <Field label="Message" required>
+      <Field id="message" label="Message" required>
         <textarea
-          name="message" required rows={5}
+          id="message" name="message" required rows={5}
           value={form.message} onChange={set}
           placeholder="Tell us how we can help..."
           className={`${inputClass} resize-none`}
