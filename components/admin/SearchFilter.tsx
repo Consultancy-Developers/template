@@ -1,3 +1,5 @@
+'use client'
+
 interface Props {
   search: string
   onSearchChange: (v: string) => void

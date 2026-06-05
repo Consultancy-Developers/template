@@ -28,31 +28,35 @@ export async function POST(req: NextRequest) {
     const from = process.env.RESEND_FROM_EMAIL!
     const adminEmail = process.env.ADMIN_EMAIL!
 
-    await Promise.all([
-      resend.emails.send({
-        from,
-        to: adminEmail,
-        subject: `New contact from ${name}`,
-        html: `
-          <p><strong>Name:</strong> ${name}</p>
-          <p><strong>Email:</strong> ${email}</p>
-          <p><strong>Phone:</strong> ${phone || '—'}</p>
-          <p><strong>Subject:</strong> ${subject}</p>
-          <p><strong>Message:</strong></p>
-          <p style="white-space:pre-wrap">${message}</p>
-        `,
-      }),
-      resend.emails.send({
-        from,
-        to: email,
-        subject: 'We received your message',
-        html: `
-          <p>Hi ${name},</p>
-          <p>Thank you for reaching out! We received your message and will get back to you shortly.</p>
-          <p>Best regards,<br/>Template Team</p>
-        `,
-      }),
-    ])
+    try {
+      await Promise.all([
+        resend.emails.send({
+          from,
+          to: adminEmail,
+          subject: `New contact from ${name}`,
+          html: `
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Phone:</strong> ${phone || '—'}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Message:</strong></p>
+            <p style="white-space:pre-wrap">${message}</p>
+          `,
+        }),
+        resend.emails.send({
+          from,
+          to: email,
+          subject: 'We received your message',
+          html: `
+            <p>Hi ${name},</p>
+            <p>Thank you for reaching out! We received your message and will get back to you shortly.</p>
+            <p>Best regards,<br/>Template Team</p>
+          `,
+        }),
+      ])
+    } catch (emailError) {
+      console.error('Failed to send emails:', emailError)
+    }
   }
 
   return NextResponse.json({ success: true })
