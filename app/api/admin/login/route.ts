@@ -8,7 +8,7 @@ function safeEquals(a: string, b: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  const { username, password } = await req.json()
+  const { username, password } = await req.json() as { username: string; password: string }
 
   if (
     !safeEquals(username ?? '', process.env.ADMIN_USERNAME ?? '') ||

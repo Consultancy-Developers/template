@@ -5,27 +5,32 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:cf": "opennextjs-cloudflare build",
+    "preview": "opennextjs-cloudflare preview",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.107.0",
     "next": "16.2.7",
+    "nodemailer": "^6.10.1",
     "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "resend": "^6.12.4"
+    "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260606.1",
+    "@opennextjs/cloudflare": "^1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.17",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "tailwindcss": "^4",
     "typescript": "^5",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.8",
+    "wrangler": "^4"
   }
 }

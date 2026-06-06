@@ -1,20 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isRequestAuthenticated } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
+import type { Contact } from '@/types'
+
+export const runtime = 'edge'
 
 export async function GET(req: NextRequest) {
   if (!isRequestAuthenticated(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: contacts, error } = await supabase
-    .from('contacts')
-    .select('*')
-    .order('created_at', { ascending: false })
+  const { env } = await getCloudflareContext({ async: true })
 
-  if (error) {
+  try {
+    const { results: contacts } = await env.DB.prepare(
+      'SELECT * FROM contacts ORDER BY created_at DESC'
+    ).all<Contact>()
+
+    return NextResponse.json({ contacts })
+  } catch (err) {
+    console.error('D1 fetch error:', err)
     return NextResponse.json({ error: 'Failed to fetch contacts' }, { status: 500 })
   }
-
-  return NextResponse.json({ contacts })
 }

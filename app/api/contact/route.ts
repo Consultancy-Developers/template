@@ -1,36 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
-import { resend } from '@/lib/resend'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
+import { getTransporter } from '@/lib/email'
+
+export const runtime = 'edge'
+
+const MAX_DB_BYTES = 400 * 1024 * 1024 // 400 MB
 
 export async function POST(req: NextRequest) {
-  const { name, email, phone, subject, message } = await req.json()
+  const { name, email, phone, subject, message } = await req.json() as {
+    name: string; email: string; phone?: string; subject: string; message: string
+  }
 
   if (!name || !email || !subject || !message) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  const { error: insertError } = await supabase
-    .from('contacts')
-    .insert({ name, email, phone: phone || null, subject, message })
+  const { env } = await getCloudflareContext({ async: true })
+  const db = env.DB
 
-  if (insertError) {
-    console.error('Supabase insert error:', insertError)
+  // Prune oldest 10% of contacts when D1 storage exceeds 400 MB
+  const pageCount = await db.prepare('PRAGMA page_count').first<{ page_count: number }>()
+  const pageSize = await db.prepare('PRAGMA page_size').first<{ page_size: number }>()
+  const sizeBytes = (pageCount?.page_count ?? 0) * (pageSize?.page_size ?? 4096)
+
+  if (sizeBytes > MAX_DB_BYTES) {
+    await db.prepare(
+      `DELETE FROM contacts WHERE id IN (
+        SELECT id FROM contacts ORDER BY created_at ASC
+        LIMIT MAX(1, (SELECT COUNT(*) / 10 FROM contacts))
+      )`
+    ).run()
+  }
+
+  const id = crypto.randomUUID()
+
+  try {
+    await db
+      .prepare('INSERT INTO contacts (id, name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?, ?)')
+      .bind(id, name, email, phone || null, subject, message)
+      .run()
+  } catch (err) {
+    console.error('D1 insert error:', err)
     return NextResponse.json({ error: 'Failed to save contact' }, { status: 500 })
   }
 
-  const { data: settings } = await supabase
-    .from('settings')
-    .select('email_enabled')
-    .eq('id', 1)
-    .single()
+  const settings = await db
+    .prepare('SELECT email_enabled FROM settings WHERE id = 1')
+    .first<{ email_enabled: number }>()
 
   if (settings?.email_enabled) {
-    const from = process.env.RESEND_FROM_EMAIL!
+    const from = process.env.FROM_EMAIL!
     const adminEmail = process.env.ADMIN_EMAIL!
 
     try {
+      const transporter = getTransporter()
       await Promise.all([
-        resend.emails.send({
+        transporter.sendMail({
           from,
           to: adminEmail,
           subject: `New contact from ${name}`,
@@ -43,7 +68,7 @@ export async function POST(req: NextRequest) {
             <p style="white-space:pre-wrap">${message}</p>
           `,
         }),
-        resend.emails.send({
+        transporter.sendMail({
           from,
           to: email,
           subject: 'We received your message',
@@ -55,6 +80,7 @@ export async function POST(req: NextRequest) {
         }),
       ])
     } catch (emailError) {
+      // Email failure is non-fatal — contact is already saved
       console.error('Failed to send emails:', emailError)
     }
   }

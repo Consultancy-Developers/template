@@ -1,23 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isRequestAuthenticated } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
+
+export const runtime = 'edge'
 
 export async function GET(req: NextRequest) {
   if (!isRequestAuthenticated(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data, error } = await supabase
-    .from('settings')
-    .select('email_enabled')
-    .eq('id', 1)
-    .single()
+  const { env } = await getCloudflareContext({ async: true })
 
-  if (error) {
+  try {
+    const data = await env.DB.prepare(
+      'SELECT email_enabled FROM settings WHERE id = 1'
+    ).first<{ email_enabled: number }>()
+
+    if (!data) {
+      return NextResponse.json({ error: 'Settings not found' }, { status: 500 })
+    }
+
+    return NextResponse.json({ email_enabled: Boolean(data.email_enabled) })
+  } catch (err) {
+    console.error('D1 settings fetch error:', err)
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 })
   }
-
-  return NextResponse.json({ email_enabled: data.email_enabled })
 }
 
 export async function PATCH(req: NextRequest) {
@@ -25,16 +32,17 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { email_enabled } = await req.json()
+  const { email_enabled } = await req.json() as { email_enabled: boolean }
+  const { env } = await getCloudflareContext({ async: true })
 
-  const { error } = await supabase
-    .from('settings')
-    .update({ email_enabled })
-    .eq('id', 1)
+  try {
+    await env.DB.prepare(
+      'UPDATE settings SET email_enabled = ? WHERE id = 1'
+    ).bind(email_enabled ? 1 : 0).run()
 
-  if (error) {
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('D1 settings update error:', err)
     return NextResponse.json({ error: 'Failed to update settings' }, { status: 500 })
   }
-
-  return NextResponse.json({ success: true })
 }

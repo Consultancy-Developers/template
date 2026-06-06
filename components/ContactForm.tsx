@@ -55,7 +55,7 @@ export default function ContactForm() {
         body: JSON.stringify(form),
       })
       if (!res.ok) {
-        const data = await res.json()
+        const data = await res.json() as { error?: string }
         throw new Error(data.error ?? 'Something went wrong')
       }
       setSuccess(true)

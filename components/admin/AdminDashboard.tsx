@@ -25,8 +25,8 @@ export default function AdminDashboard() {
         router.push('/admin/login')
         return
       }
-      const { contacts } = await cRes.json()
-      const { email_enabled } = await sRes.json()
+      const { contacts } = await cRes.json() as { contacts: Contact[] }
+      const { email_enabled } = await sRes.json() as { email_enabled: boolean }
       setContacts(contacts)
       setEmailEnabled(email_enabled)
       setLoading(false)
