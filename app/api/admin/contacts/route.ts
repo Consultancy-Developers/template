@@ -3,7 +3,7 @@ import { isRequestAuthenticated } from '@/lib/auth'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 import type { Contact } from '@/types'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
   if (!isRequestAuthenticated(req)) {

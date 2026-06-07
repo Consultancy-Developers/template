@@ -13,6 +13,7 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('')
   const [subjectFilter, setSubjectFilter] = useState('')
   const [dateFilter, setDateFilter] = useState('')
+  const [currentTime] = useState(() => Date.now())
   const router = useRouter()
 
   useEffect(() => {
@@ -48,7 +49,6 @@ export default function AdminDashboard() {
   )
 
   const filtered = useMemo(() => {
-    const now = Date.now()
     return contacts.filter(c => {
       if (
         search &&
@@ -60,7 +60,7 @@ export default function AdminDashboard() {
       if (subjectFilter && c.subject !== subjectFilter) return false
 
       if (dateFilter) {
-        const ms = now - new Date(c.created_at).getTime()
+        const ms = currentTime - new Date(c.created_at).getTime()
         if (dateFilter === 'week' && ms > 7 * 86400_000) return false
         if (dateFilter === 'month') {
           const d = new Date(c.created_at)
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
 
       return true
     })
-  }, [contacts, search, subjectFilter, dateFilter])
+  }, [contacts, search, subjectFilter, dateFilter, currentTime])
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' })

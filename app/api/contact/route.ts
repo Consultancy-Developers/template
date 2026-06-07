@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { getTransporter } from '@/lib/email'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 
 const MAX_DB_BYTES = 400 * 1024 * 1024 // 400 MB
 

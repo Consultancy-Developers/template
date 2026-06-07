@@ -8,7 +8,7 @@ export default function Contact() {
       </p>
       <h1 className="text-4xl font-bold text-gray-900 mb-4">Get in touch</h1>
       <p className="text-gray-500 mb-10">
-        Fill out the form below and we'll respond as soon as possible.
+        Fill out the form below and we&apos;ll respond as soon as possible.
       </p>
       <ContactForm />
     </div>

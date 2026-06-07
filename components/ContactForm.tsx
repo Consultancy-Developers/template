@@ -71,7 +71,7 @@ export default function ContactForm() {
     return (
       <div className="text-center py-12 border border-gray-200 rounded-lg">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">Message sent!</h3>
-        <p className="text-gray-500">Thanks for reaching out. We'll be in touch soon.</p>
+        <p className="text-gray-500">Thanks for reaching out. We&apos;ll be in touch soon.</p>
         <button
           onClick={() => setSuccess(false)}
           className="mt-6 text-sm text-gray-400 underline hover:text-gray-900 transition-colors"

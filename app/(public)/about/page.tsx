@@ -23,7 +23,7 @@ export default function About() {
         Built for builders
       </h1>
       <p className="text-lg text-gray-500 mb-16 max-w-2xl">
-        Template was created to give teams a starting point that is honest and minimal — nothing you don't need, everything you do.
+        Template was created to give teams a starting point that is honest and minimal — nothing you don&apos;t need, everything you do.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
