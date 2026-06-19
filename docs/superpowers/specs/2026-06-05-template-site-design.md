@@ -1,12 +1,12 @@
 # Template Site — Design Spec
 **Date:** 2026-06-05
-**Stack:** Next.js 16 · React 19 · Tailwind CSS v4 · TypeScript · Supabase · Resend
+**Stack:** Next.js 16 · React 19 · Tailwind CSS v4 · TypeScript · D1 · Resend
 
 ---
 
 ## Overview
 
-A clean, minimal multi-page marketing site named **Template** with a contact form backed by Supabase, and a password-protected admin dashboard for managing submissions and email notifications.
+A clean, minimal multi-page marketing site named **Template** with a contact form backed by D1, and a password-protected admin dashboard for managing submissions and email notifications.
 
 ---
 
@@ -58,7 +58,7 @@ components/
 
 | Method | Route | Auth | Description |
 |---|---|---|---|
-| `POST` | `/api/contact` | none | Validate fields, save to Supabase, conditionally send emails |
+| `POST` | `/api/contact` | none | Validate fields, save to D1, conditionally send emails |
 | `POST` | `/api/admin/login` | none | Verify credentials, set `admin_session` httpOnly cookie |
 | `POST` | `/api/admin/logout` | cookie | Clear cookie |
 | `GET` | `/api/admin/contacts` | cookie | Return all rows from `contacts` table |
@@ -68,7 +68,7 @@ All `/api/admin/*` routes (except login) check the `admin_session` cookie and re
 
 ---
 
-## Supabase Schema
+## D1 Schema
 
 ### `contacts`
 ```sql
@@ -109,7 +109,7 @@ insert into settings (id, email_enabled) values (1, true);
 
 Every contact submission:
 
-1. Save contact row to Supabase regardless of email setting
+1. Save contact row to D1 regardless of email setting
 2. Fetch `settings.email_enabled`
 3. If `true`: send two emails via Resend in parallel:
    - **Admin notification** → `ADMIN_EMAIL` — subject: `New contact from [name]`, body: all 5 fields
@@ -159,7 +159,6 @@ components/
     SearchFilter.tsx
     EmailToggle.tsx
 lib/
-  supabase.ts                 — Supabase client (service role)
   resend.ts                   — Resend client
   auth.ts                     — cookie helpers (sign, verify)
 ```
@@ -177,8 +176,6 @@ ADMIN_SESSION_SECRET=random-secret-string
 RESEND_API_KEY=re_...
 RESEND_FROM_EMAIL=noreply@yourdomain.com
 
-NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
 ```
 
 ---

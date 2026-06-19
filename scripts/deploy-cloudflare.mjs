@@ -7,8 +7,8 @@ import { applyEdits, format, modify, parse } from 'jsonc-parser'
 
 const rootDir = path.resolve(fileURLToPath(new URL('..', import.meta.url)))
 const wranglerConfigPath = path.join(rootDir, 'wrangler.jsonc')
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
-const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx'
+const npmCommand = 'npm'
+const npxCommand = 'npx'
 
 function wranglerArgs(args) {
   return ['wrangler', ...args]
@@ -20,11 +20,16 @@ function run(command, args, options = {}) {
     env: { ...process.env, ...options.env },
     encoding: 'utf8',
     stdio: options.capture ? 'pipe' : 'inherit',
+    shell: process.platform === 'win32',
   })
 
   if (result.status !== 0) {
     const details = options.capture ? `\n${result.stderr || result.stdout}` : ''
-    throw new Error(`Command failed: ${command} ${args.join(' ')}${details}`)
+    const error = new Error(`Command failed: ${command} ${args.join(' ')}${details}`)
+    error.status = result.status
+    error.stdout = result.stdout
+    error.stderr = result.stderr
+    throw error
   }
 
   return result.stdout
@@ -85,17 +90,44 @@ export function updateD1DatabaseIds(source, databaseIdsByName) {
   )
 }
 
-function requireLogin() {
-  runWrangler(['whoami', '--json'], { capture: true })
+function authErrorMessage() {
+  return [
+    'Cloudflare Wrangler is not authenticated.',
+    'Run `npx wrangler login` in your terminal, then rerun `npm run deploy`.',
+    'For token-based deploys, set `CLOUDFLARE_API_TOKEN` before running this command.',
+  ].join(' ')
 }
 
-function loginForDeploy(mode) {
-  if (mode === 'deploy') {
-    runWrangler(['login'])
-    return
+function parseWhoamiOutput(output) {
+  if (!output) {
+    return null
   }
 
-  requireLogin()
+  try {
+    return JSON.parse(output)
+  } catch {
+    return null
+  }
+}
+
+export function ensureCloudflareAuth(runWranglerCommand = runWrangler) {
+  let authStatus
+
+  try {
+    authStatus = parseWhoamiOutput(
+      runWranglerCommand(['whoami', '--json'], { capture: true }),
+    )
+  } catch (error) {
+    authStatus = parseWhoamiOutput(error.stdout)
+
+    if (!authStatus) {
+      throw new Error(`${authErrorMessage()} Wrangler auth check failed: ${error.message}`)
+    }
+  }
+
+  if (!authStatus?.loggedIn) {
+    throw new Error(authErrorMessage())
+  }
 }
 
 function listD1Databases() {
@@ -190,7 +222,7 @@ export function runCloudflareDeploy(mode = 'redeploy') {
     throw new Error('Usage: node scripts/deploy-cloudflare.mjs <deploy|redeploy>')
   }
 
-  loginForDeploy(mode)
+  ensureCloudflareAuth()
 
   const { source, databases } = readWranglerConfig()
   const databaseIdsByName = ensureD1Databases(databases)

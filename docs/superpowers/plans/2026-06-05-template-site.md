@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a clean minimal multi-page Next.js site (Home, About, Contact) with Supabase-backed contact form, Resend email notifications, and a password-protected admin dashboard.
+**Goal:** Build a clean minimal multi-page Next.js site (Home, About, Contact) with D1-backed contact form, Resend email notifications, and a password-protected admin dashboard.
 
 **Architecture:** API Routes + httpOnly cookie session (Approach A). Public pages share a Navbar+Footer layout via a `(public)` route group. Admin pages live outside that group so they get no public nav. Auth is checked server-side in the admin page component by reading the session cookie directly.
 
-**Tech Stack:** Next.js 16 · React 19 · Tailwind CSS v4 · TypeScript · Supabase (service role) · Resend · Vitest (unit tests for lib)
+**Tech Stack:** Next.js 16 · React 19 · Tailwind CSS v4 · TypeScript · Cloudflare D1 · Resend · Vitest (unit tests for lib)
 
 ---
 
@@ -15,7 +15,6 @@
 **New files to create:**
 ```
 types/index.ts
-lib/supabase.ts
 lib/resend.ts
 lib/auth.ts
 lib/__tests__/auth.test.ts
@@ -66,7 +65,7 @@ app/page.tsx            — replaced by app/(public)/page.tsx
 - [ ] **Step 1: Install runtime packages**
 
 ```bash
-npm install @supabase/supabase-js resend
+npm install nodemailer
 ```
 
 Expected: packages added to `node_modules`, `package.json` dependencies updated.
@@ -90,8 +89,6 @@ ADMIN_SESSION_SECRET=replace-with-random-32-char-string
 RESEND_API_KEY=re_your_key_here
 RESEND_FROM_EMAIL=onboarding@resend.dev
 
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 > **Note on RESEND_FROM_EMAIL:** During development, use `onboarding@resend.dev` (Resend's test address). For production, set up a verified domain in Resend and change this to `noreply@yourdomain.com`.
@@ -110,7 +107,7 @@ Open `.gitignore` (create if absent) and verify or add:
 
 ```bash
 git add package.json package-lock.json .gitignore
-git commit -m "chore: install supabase, resend, vitest"
+git commit -m "chore: install email and test dependencies"
 ```
 
 ---
@@ -156,24 +153,12 @@ git commit -m "feat: add shared TypeScript types"
 
 ---
 
-## Task 3: Lib — Supabase + Resend clients
+## Task 3: Lib — Email client
 
 **Files:**
-- Create: `lib/supabase.ts`
 - Create: `lib/resend.ts`
 
-- [ ] **Step 1: Create `lib/supabase.ts`**
-
-```typescript
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseKey)
-```
-
-- [ ] **Step 2: Create `lib/resend.ts`**
+- [ ] **Step 1: Create `lib/resend.ts`**
 
 ```typescript
 import { Resend } from 'resend'
@@ -181,7 +166,7 @@ import { Resend } from 'resend'
 export const resend = new Resend(process.env.RESEND_API_KEY)
 ```
 
-- [ ] **Step 3: Verify TypeScript compiles**
+- [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
 npx tsc --noEmit
@@ -189,11 +174,11 @@ npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
-git add lib/supabase.ts lib/resend.ts
-git commit -m "feat: add Supabase and Resend clients"
+git add lib/resend.ts
+git commit -m "feat: add email client"
 ```
 
 ---
@@ -487,7 +472,7 @@ export default function Footer() {
 }
 ```
 
-- [ ] **Step 3: Verify TypeScript compiles**
+- [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
 npx tsc --noEmit
@@ -495,7 +480,7 @@ npx tsc --noEmit
 
 Expected: no errors.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add components/Navbar.tsx components/Footer.tsx
@@ -580,7 +565,7 @@ npm run dev
 
 Open http://localhost:3000 — should show the hero section with Navbar and Footer.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add "app/(public)/layout.tsx" "app/(public)/page.tsx"
@@ -828,7 +813,7 @@ export default function Contact() {
 
 Open http://localhost:3000/contact — the 5-field form should render. The submit button will fail (API route not yet created) — that's expected.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add components/ContactForm.tsx "app/(public)/contact/page.tsx"
@@ -846,7 +831,7 @@ git commit -m "feat: add ContactForm component and Contact page"
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { resend } from '@/lib/resend'
 
 export async function POST(req: NextRequest) {
@@ -856,16 +841,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  const { error: insertError } = await supabase
+  const { error: insertError } = await D1
     .from('contacts')
     .insert({ name, email, phone: phone || null, subject, message })
 
   if (insertError) {
-    console.error('Supabase insert error:', insertError)
+    console.error('D1 insert error:', insertError)
     return NextResponse.json({ error: 'Failed to save contact' }, { status: 500 })
   }
 
-  const { data: settings } = await supabase
+  const { data: settings } = await D1
     .from('settings')
     .select('email_enabled')
     .eq('id', 1)
@@ -997,13 +982,13 @@ export async function POST() {
 }
 ```
 
-- [ ] **Step 3: Verify TypeScript compiles**
+- [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
 npx tsc --noEmit
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add app/api/admin/login/route.ts app/api/admin/logout/route.ts
@@ -1023,14 +1008,14 @@ git commit -m "feat: add admin login/logout API routes"
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { isRequestAuthenticated } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 
 export async function GET(req: NextRequest) {
   if (!isRequestAuthenticated(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data: contacts, error } = await supabase
+  const { data: contacts, error } = await D1
     .from('contacts')
     .select('*')
     .order('created_at', { ascending: false })
@@ -1048,14 +1033,14 @@ export async function GET(req: NextRequest) {
 ```typescript
 import { NextRequest, NextResponse } from 'next/server'
 import { isRequestAuthenticated } from '@/lib/auth'
-import { supabase } from '@/lib/supabase'
+import { getCloudflareContext } from '@opennextjs/cloudflare'
 
 export async function GET(req: NextRequest) {
   if (!isRequestAuthenticated(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await D1
     .from('settings')
     .select('email_enabled')
     .eq('id', 1)
@@ -1075,7 +1060,7 @@ export async function PATCH(req: NextRequest) {
 
   const { email_enabled } = await req.json()
 
-  const { error } = await supabase
+  const { error } = await D1
     .from('settings')
     .update({ email_enabled })
     .eq('id', 1)
@@ -1088,13 +1073,13 @@ export async function PATCH(req: NextRequest) {
 }
 ```
 
-- [ ] **Step 3: Verify TypeScript compiles**
+- [ ] **Step 2: Verify TypeScript compiles**
 
 ```bash
 npx tsc --noEmit
 ```
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add app/api/admin/contacts/route.ts app/api/admin/settings/route.ts
@@ -1552,13 +1537,13 @@ git commit -m "feat: add admin login and dashboard pages"
 
 ---
 
-## Task 16: Supabase schema + final smoke test
+## Task 16: D1 schema + final smoke test
 
-**Files:** (no code files — run SQL in Supabase dashboard)
+**Files:** (no code files — run SQL in D1 dashboard)
 
-- [ ] **Step 1: Run this SQL in the Supabase SQL editor**
+- [ ] **Step 1: Run this SQL in the D1 SQL editor**
 
-Go to your Supabase project → SQL Editor → New query, paste and run:
+Go to your D1 project → SQL Editor → New query, paste and run:
 
 ```sql
 -- Contacts table
@@ -1588,8 +1573,6 @@ on conflict (id) do nothing;
 - [ ] **Step 2: Fill in real values in `.env.local`**
 
 Replace the placeholder values with your real keys:
-- `NEXT_PUBLIC_SUPABASE_URL` — from Supabase project settings → API
-- `SUPABASE_SERVICE_ROLE_KEY` — from Supabase project settings → API → service_role key
 - `RESEND_API_KEY` — from resend.com dashboard
 - `ADMIN_SESSION_SECRET` — generate with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
@@ -1602,13 +1585,13 @@ npm run dev
 1. Visit http://localhost:3000 — home page renders
 2. Visit http://localhost:3000/about — about page renders
 3. Visit http://localhost:3000/contact — fill in form, submit → success state
-4. Check Supabase → `contacts` table has a new row
+4. Check D1 → `contacts` table has a new row
 5. Visit http://localhost:3000/admin — redirects to `/admin/login`
 6. Login with `ADMIN_USERNAME` / `ADMIN_PASSWORD` — redirects to dashboard
 7. Dashboard shows the submitted contact
 8. Search for the contact name — row filters correctly
 9. Toggle email notifications off → toggle turns gray
-10. Submit another contact form → no emails sent (row still saved in Supabase)
+10. Submit another contact form → no emails sent (row still saved in D1)
 11. Toggle email back on
 12. Click Logout → redirects to login page
 
@@ -1624,7 +1607,7 @@ Expected: 5 tests PASS.
 
 ```bash
 git add .
-git commit -m "feat: complete Template site — contact form, Supabase, email, admin dashboard"
+git commit -m "feat: complete Template site — contact form, D1, email, admin dashboard"
 ```
 
 ---
@@ -1639,5 +1622,3 @@ git commit -m "feat: complete Template site — contact form, Supabase, email, a
 | `ADMIN_SESSION_SECRET` | `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
 | `RESEND_API_KEY` | resend.com → API Keys |
 | `RESEND_FROM_EMAIL` | `onboarding@resend.dev` (dev) or your verified domain (prod) |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase dashboard → Settings → API → Project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase dashboard → Settings → API → service_role |

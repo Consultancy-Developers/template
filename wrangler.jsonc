@@ -2,36 +2,37 @@
   "name": "templates",
   "compatibility_date": "2025-09-01",
   // nodejs_compat enables Node.js APIs (needed for nodemailer SMTP + crypto)
-  "compatibility_flags": ["nodejs_compat"],
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
   "main": ".open-next/worker.js",
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "templates-db",
-      // Replace with your actual D1 database ID after running:
-      // wrangler d1 create templates-db
-      "database_id": "REPLACE_WITH_YOUR_D1_ID"
+      "database_id": "75636084-cbed-40ef-9198-4666461904ce"
     }
   ],
-
   "vars": {
     // Admin credentials (move sensitive values to secrets in production)
     "ADMIN_USERNAME": "admin",
+    "ADMIN_PASSWORD": "admin123",
+    "ADMIN_SESSION_SECRET": "ofui-0986Vjhyt6r7fjykg2uiy-kgyf",
     // Email addresses
-    "ADMIN_EMAIL": "dev.codeminal@gmail.com",
-    "FROM_EMAIL": "noreply@yourdomain.com",
+    "ADMIN_EMAIL": "yahyasaad.me@gmail.com",
+    "FROM_EMAIL": "yahyasaad.me@gmail.com",
     // SMTP configuration
     "SMTP_HOST": "smtp.gmail.com",
     "SMTP_PORT": "587",
+    "SMTP_USER": "yahyasaad.me@gmail.com",
+    "SMTP_PASS": "coxq cofx hjxt cksu",
     // Set to "true" for port 465 (SSL), "false" for port 587 (STARTTLS)
     "SMTP_SECURE": "false"
   }
-
   // ── Secrets (never commit these — set via wrangler secret put) ───────────
   // wrangler secret put ADMIN_PASSWORD
   // wrangler secret put ADMIN_SESSION_SECRET
