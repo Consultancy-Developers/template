@@ -3,7 +3,9 @@ export interface Contact {
   name: string
   email: string
   phone: string | null
-  subject: string
+  company: string
+  country: string
+  service_required: string
   message: string
   created_at: string
 }

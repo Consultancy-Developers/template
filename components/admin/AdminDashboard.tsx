@@ -11,7 +11,7 @@ export default function AdminDashboard() {
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [subjectFilter, setSubjectFilter] = useState('')
+  const [serviceFilter, setServiceFilter] = useState('')
   const [dateFilter, setDateFilter] = useState('')
   const [currentTime] = useState(() => Date.now())
   const router = useRouter()
@@ -43,8 +43,8 @@ export default function AdminDashboard() {
     }).length
   }, [contacts])
 
-  const subjects = useMemo(
-    () => [...new Set(contacts.map(c => c.subject))].sort(),
+  const services = useMemo(
+    () => [...new Set(contacts.map(c => c.service_required))].sort(),
     [contacts],
   )
 
@@ -54,10 +54,11 @@ export default function AdminDashboard() {
         search &&
         !c.name.toLowerCase().includes(search.toLowerCase()) &&
         !c.email.toLowerCase().includes(search.toLowerCase()) &&
-        !c.subject.toLowerCase().includes(search.toLowerCase())
+        !c.company.toLowerCase().includes(search.toLowerCase()) &&
+        !c.service_required.toLowerCase().includes(search.toLowerCase())
       ) return false
 
-      if (subjectFilter && c.subject !== subjectFilter) return false
+      if (serviceFilter && c.service_required !== serviceFilter) return false
 
       if (dateFilter) {
         const ms = currentTime - new Date(c.created_at).getTime()
@@ -71,7 +72,7 @@ export default function AdminDashboard() {
 
       return true
     })
-  }, [contacts, search, subjectFilter, dateFilter, currentTime])
+  }, [contacts, search, serviceFilter, dateFilter, currentTime])
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' })
@@ -80,45 +81,45 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-sm text-gray-400">Loading...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#F5F7FA]">
+        <p className="text-sm text-[#1A1A1A]/60">Loading...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-gray-900 text-white px-6 py-4 flex justify-between items-center">
-        <span className="font-bold tracking-tight">Template — Admin</span>
+    <div className="min-h-screen bg-[#F5F7FA]">
+      <div className="flex items-center justify-between bg-[#0A2540] px-6 py-4 text-white">
+        <span className="font-bold tracking-tight">Corplex Global - Admin</span>
         <button
           onClick={handleLogout}
-          className="text-sm bg-gray-700 hover:bg-gray-600 px-3 py-1.5 rounded transition-colors"
+          className="rounded bg-[#C9A44C] px-3 py-1.5 text-sm font-semibold text-[#0A2540] transition-colors hover:bg-[#ddb860]"
         >
           Logout
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Total Contacts</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{contacts.length}</p>
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-[#1A1A1A]/60">Total Contacts</p>
+            <p className="mt-1 text-3xl font-bold text-[#0A2540]">{contacts.length}</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">This Month</p>
-            <p className="text-3xl font-bold text-gray-900 mt-1">{thisMonth}</p>
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-[#1A1A1A]/60">This Month</p>
+            <p className="mt-1 text-3xl font-bold text-[#0A2540]">{thisMonth}</p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-lg p-5">
-            <p className="text-xs text-gray-500 uppercase tracking-wide font-medium">Email Notifications</p>
+          <div className="rounded-lg border border-[#E5E7EB] bg-white p-5">
+            <p className="text-xs font-medium uppercase tracking-wide text-[#1A1A1A]/60">Email Notifications</p>
             <EmailToggle enabled={emailEnabled} onChange={setEmailEnabled} />
           </div>
         </div>
 
         <SearchFilter
           search={search} onSearchChange={setSearch}
-          subjectFilter={subjectFilter} onSubjectChange={setSubjectFilter}
+          serviceFilter={serviceFilter} onServiceChange={setServiceFilter}
           dateFilter={dateFilter} onDateChange={setDateFilter}
-          subjects={subjects}
+          services={services}
         />
 
         <ContactsTable contacts={filtered} />

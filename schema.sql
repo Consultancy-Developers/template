@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS contacts (
   name        TEXT NOT NULL,
   email       TEXT NOT NULL,
   phone       TEXT,
-  subject     TEXT NOT NULL,
+  company     TEXT NOT NULL,
+  country     TEXT NOT NULL,
+  service_required TEXT NOT NULL,
   message     TEXT NOT NULL,
   created_at  TEXT NOT NULL DEFAULT (datetime('now'))
 );

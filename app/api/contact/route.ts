@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 import { getTransporter } from '@/lib/email'
 
-export const runtime = 'nodejs'
-
 const MAX_DB_BYTES = 400 * 1024 * 1024 // 400 MB
 
 export async function POST(req: NextRequest) {
-  const { name, email, phone, subject, message } = await req.json() as {
-    name: string; email: string; phone?: string; subject: string; message: string
+  const { name, email, phone, company, country, serviceRequired, message } = await req.json() as {
+    name: string
+    email: string
+    phone?: string
+    company: string
+    country: string
+    serviceRequired: string
+    message: string
   }
 
-  if (!name || !email || !subject || !message) {
+  if (!name || !email || !company || !country || !serviceRequired || !message) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
@@ -36,8 +40,10 @@ export async function POST(req: NextRequest) {
 
   try {
     await db
-      .prepare('INSERT INTO contacts (id, name, email, phone, subject, message) VALUES (?, ?, ?, ?, ?, ?)')
-      .bind(id, name, email, phone || null, subject, message)
+      .prepare(
+        'INSERT INTO contacts (id, name, email, phone, company, country, service_required, message) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      )
+      .bind(id, name, email, phone || null, company, country, serviceRequired, message)
       .run()
   } catch (err) {
     console.error('D1 insert error:', err)
@@ -58,12 +64,14 @@ export async function POST(req: NextRequest) {
         transporter.sendMail({
           from,
           to: adminEmail,
-          subject: `New contact from ${name}`,
+          subject: `New consultation request from ${name}`,
           html: `
             <p><strong>Name:</strong> ${name}</p>
             <p><strong>Email:</strong> ${email}</p>
             <p><strong>Phone:</strong> ${phone || '—'}</p>
-            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Company:</strong> ${company}</p>
+            <p><strong>Country:</strong> ${country}</p>
+            <p><strong>Service Required:</strong> ${serviceRequired}</p>
             <p><strong>Message:</strong></p>
             <p style="white-space:pre-wrap">${message}</p>
           `,
@@ -71,11 +79,11 @@ export async function POST(req: NextRequest) {
         transporter.sendMail({
           from,
           to: email,
-          subject: 'We received your message',
+          subject: 'We received your consultation request',
           html: `
             <p>Hi ${name},</p>
             <p>Thank you for reaching out! We received your message and will get back to you shortly.</p>
-            <p>Best regards,<br/>Template Team</p>
+            <p>Best regards,<br/>Corplex Global Accounting</p>
           `,
         }),
       ])

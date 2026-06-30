@@ -22,22 +22,22 @@ export default function EmailToggle({ enabled, onChange }: Props) {
   }
 
   return (
-    <div className="flex items-center gap-3 mt-2">
+    <div className="mt-2 flex items-center gap-3">
       <button
         onClick={toggle}
         disabled={loading}
         aria-label={enabled ? 'Disable email notifications' : 'Enable email notifications'}
-        className={`w-10 h-6 rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-1 disabled:opacity-50 ${
-          enabled ? 'bg-gray-900' : 'bg-gray-300'
+        className={`relative h-6 w-10 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#C9A44C] focus:ring-offset-1 focus:ring-offset-white disabled:opacity-50 ${
+          enabled ? 'bg-[#C9A44C]' : 'bg-[#E5E7EB]'
         }`}
       >
         <span
-          className={`block w-4 h-4 bg-white rounded-full absolute top-1 transition-transform ${
+          className={`absolute top-1 block h-4 w-4 rounded-full bg-white transition-transform ${
             enabled ? 'translate-x-5' : 'translate-x-1'
           }`}
         />
       </button>
-      <span className="text-sm font-semibold text-gray-900">
+      <span className="text-sm font-semibold text-[#1A1A1A]">
         {enabled ? 'Enabled' : 'Disabled'}
       </span>
     </div>

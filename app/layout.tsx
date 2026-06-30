@@ -1,18 +1,38 @@
 import type { Metadata } from 'next'
-import { Geist } from 'next/font/google'
+import { Inter, Playfair_Display } from 'next/font/google'
 import './globals.css'
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist-sans' })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-playfair' })
 
 export const metadata: Metadata = {
-  title: 'Template',
-  description: 'A clean, minimal site template.',
+  title: 'Corplex Global Accounting | Multi-Jurisdiction Accounting & Tax Consultancy',
+  description:
+    'Corplex Global Accounting delivers premium accounting, tax compliance and corporate governance services across India, USA, UK and UAE.',
+  keywords: [
+    'accounting consultancy',
+    'tax compliance',
+    'corporate governance',
+    'India accounting firm',
+    'multi-jurisdiction accounting',
+    'bookkeeping services',
+  ],
+  openGraph: {
+    title: 'Corplex Global Accounting',
+    description:
+      'Premium accounting, tax compliance, and corporate governance consultancy across India, USA, UK, and UAE.',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={geist.variable}>
-      <body className="min-h-screen bg-white text-gray-900 font-sans antialiased">
+    <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <body className="min-h-screen bg-white text-[#1A1A1A] font-sans antialiased">
         {children}
       </body>
     </html>

@@ -1,11 +1,21 @@
 {
   "name": "templates",
+  "routes": [
+    {
+      "pattern": "corplexglobal.in",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.corplexglobal.in",
+      "custom_domain": true
+    }
+  ],
   "compatibility_date": "2025-09-01",
   // nodejs_compat enables Node.js APIs (needed for nodemailer SMTP + crypto)
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "main": ".open-next/worker.js",
+  "main": "./.open-next/worker.js",
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -14,7 +24,7 @@
     {
       "binding": "DB",
       "database_name": "templates-db",
-      "database_id": "75636084-cbed-40ef-9198-4666461904ce"
+      "database_id": "b4cdcdbe-3955-402b-9984-4530d6831b30"
     }
   ],
   "vars": {
@@ -31,7 +41,9 @@
     "SMTP_USER": "yahyasaad.me@gmail.com",
     "SMTP_PASS": "coxq cofx hjxt cksu",
     // Set to "true" for port 465 (SSL), "false" for port 587 (STARTTLS)
-    "SMTP_SECURE": "false"
+    "SMTP_SECURE": "false",
+    // Maintenance mode — set to "true" to show maintenance page, "false" to go live
+    "MAINTENANCE_MODE": "false"
   }
   // ── Secrets (never commit these — set via wrangler secret put) ───────────
   // wrangler secret put ADMIN_PASSWORD

@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { isRequestAuthenticated } from '@/lib/auth'
 import { getCloudflareContext } from '@opennextjs/cloudflare'
 
-export const runtime = 'nodejs'
-
 export async function GET(req: NextRequest) {
   if (!isRequestAuthenticated(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

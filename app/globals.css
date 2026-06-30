@@ -1,5 +1,88 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
+}
+
+:root {
+  --color-white: #ffffff;
+  --color-royal-blue: #0a2540;
+  --color-gold: #c9a44c;
+  --color-light-gray: #f5f7fa;
+  --color-dark-text: #1a1a1a;
+  --color-border: #e5e7eb;
+  --color-muted: color-mix(in srgb, var(--color-dark-text) 68%, white 32%);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-white);
+  color: var(--color-dark-text);
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-gold) 70%, white 30%);
+  color: var(--color-royal-blue);
+}
+
+.font-display {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+.font-body {
+  font-family: var(--font-inter), system-ui, sans-serif;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.12;
+    transform: scale(1) translate(0, 0);
+  }
+  50% {
+    opacity: 0.22;
+    transform: scale(1.08) translate(2%, 1%);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 12s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-dark {
+  background: rgba(10, 37, 64, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(10, 37, 64, 0.06);
+}
+
+.premium-card-hover {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(201, 164, 76, 0.35);
+  box-shadow: 0 20px 40px -15px rgba(201, 164, 76, 0.1), 0 0 25px 0 rgba(201, 164, 76, 0.04);
 }
